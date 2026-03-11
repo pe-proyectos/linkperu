@@ -1,0 +1,122 @@
+---
+import Base from "../layouts/Base.astro";
+---
+<Base title="Configuración — LinkPeru">
+  <div class="container" style="max-width: 36rem;">
+    <header class="header">
+      <a href="/dashboard" class="logo"><div class="logo-icon"></div> LinkPeru</a>
+      <a href="/dashboard" class="text-muted">← Volver</a>
+    </header>
+
+    <div class="card">
+      <h1 class="text-2xl font-bold mb-6">Configuración del perfil</h1>
+      <div id="message" class="hidden"></div>
+
+      <form id="settingsForm">
+        <div class="form-group">
+          <label class="form-label">Nombre</label>
+          <input class="form-input" id="name" required />
+        </div>
+        <div class="form-group">
+          <label class="form-label">URL personalizada</label>
+          <div style="display: flex; align-items: center;">
+            <span class="text-muted" style="margin-right: 0.5rem;">link.luminari.agency/</span>
+            <input class="form-input" id="slug" required />
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Bio</label>
+          <textarea class="form-input" id="bio" rows="3" maxlength="200" placeholder="Describe tu negocio..."></textarea>
+          <p class="text-sm text-muted mt-1"><span id="bioCount">0</span>/200</p>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Tema</label>
+          <div id="themes" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem;"></div>
+        </div>
+        <button type="submit" class="btn btn-primary btn-full" id="saveBtn">Guardar cambios</button>
+      </form>
+    </div>
+  </div>
+</Base>
+
+<style>
+  .theme-btn { padding: 0.75rem; border-radius: var(--radius); border: 2px solid var(--color-border); cursor: pointer; text-align: center; transition: all 0.2s; background: none; }
+  .theme-btn.active { border-color: var(--color-primary); box-shadow: var(--shadow); }
+  .theme-preview { height: 2rem; border-radius: 0.5rem; margin-bottom: 0.5rem; }
+</style>
+
+<script is:inline>
+  const API = '/api';
+  const themes = [
+    { id: 'default', name: 'Clásico', bg: 'linear-gradient(135deg, #fef3c7, #fee2e2)' },
+    { id: 'dark', name: 'Oscuro', bg: 'linear-gradient(135deg, #1f2937, #111827)' },
+    { id: 'ocean', name: 'Océano', bg: 'linear-gradient(135deg, #dbeafe, #cffafe)' },
+    { id: 'forest', name: 'Bosque', bg: 'linear-gradient(135deg, #dcfce7, #d1fae5)' },
+    { id: 'sunset', name: 'Atardecer', bg: 'linear-gradient(135deg, #fed7aa, #fce7f3)' },
+    { id: 'minimal', name: 'Minimal', bg: 'linear-gradient(135deg, #fff, #f9fafb)' },
+  ];
+
+  let selectedTheme = 'default';
+
+  function token() { return localStorage.getItem('token'); }
+  function headers() { return { 'Content-Type': 'application/json', Authorization: `Bearer ${token()}` }; }
+
+  async function init() {
+    if (!token()) { window.location.href = '/login'; return; }
+    const res = await fetch(`${API}/users/me`, { headers: headers() });
+    if (!res.ok) { window.location.href = '/login'; return; }
+    const { user } = await res.json();
+
+    document.getElementById('name').value = user.name;
+    document.getElementById('slug').value = user.slug;
+    document.getElementById('bio').value = user.bio || '';
+    document.getElementById('bioCount').textContent = (user.bio || '').length;
+    selectedTheme = user.theme || 'default';
+    renderThemes();
+  }
+
+  function renderThemes() {
+    document.getElementById('themes').innerHTML = themes.map(t => `
+      <button type="button" class="theme-btn ${t.id === selectedTheme ? 'active' : ''}" onclick="selectTheme('${t.id}')">
+        <div class="theme-preview" style="background: ${t.bg}"></div>
+        <span class="text-sm">${t.name}</span>
+      </button>
+    `).join('');
+  }
+
+  window.selectTheme = function(id) { selectedTheme = id; renderThemes(); };
+
+  document.getElementById('bio').addEventListener('input', (e) => {
+    document.getElementById('bioCount').textContent = e.target.value.length;
+  });
+
+  document.getElementById('settingsForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('saveBtn');
+    const msg = document.getElementById('message');
+    btn.disabled = true;
+    btn.textContent = 'Guardando...';
+
+    try {
+      const res = await fetch(`${API}/users/me`, {
+        method: 'PATCH', headers: headers(),
+        body: JSON.stringify({
+          name: document.getElementById('name').value,
+          slug: document.getElementById('slug').value.toLowerCase().replace(/[^a-z0-9-]/g, ''),
+          bio: document.getElementById('bio').value,
+          theme: selectedTheme,
+        }),
+      });
+      if (!res.ok) { const d = await res.json(); throw new Error(d.error); }
+      msg.className = 'alert alert-success mb-4';
+      msg.textContent = '✅ Perfil actualizado';
+    } catch (err) {
+      msg.className = 'alert alert-error mb-4';
+      msg.textContent = '❌ ' + err.message;
+    }
+    btn.disabled = false;
+    btn.textContent = 'Guardar cambios';
+  });
+
+  init();
+</script>

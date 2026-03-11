@@ -1,0 +1,20 @@
+{
+  "name": "linkperu-api",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "bun --watch src/index.ts",
+    "start": "bun src/index.ts",
+    "db:push": "bunx prisma db push",
+    "db:generate": "bunx prisma generate"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.0.0",
+    "elysia": "^1.2.25",
+    "bcryptjs": "^3.0.3",
+    "@elysiajs/cors": "^1.2.0"
+  },
+  "devDependencies": {
+    "prisma": "^6.0.0",
+    "@types/bcryptjs": "^3.0.0"
+  }
+}

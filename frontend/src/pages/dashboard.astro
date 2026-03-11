@@ -1,0 +1,207 @@
+---
+import Base from "../layouts/Base.astro";
+---
+<Base title="Dashboard — LinkPeru">
+  <div class="container">
+    <header class="header">
+      <a href="/" class="logo"><div class="logo-icon"></div> LinkPeru</a>
+      <nav class="nav">
+        <a href="#" id="viewPage" target="_blank" class="text-muted">Ver mi página →</a>
+        <button onclick="localStorage.removeItem('token'); window.location.href='/'" class="btn btn-outline" style="font-size: 0.875rem; padding: 0.5rem 1rem;">Salir</button>
+      </nav>
+    </header>
+
+    <main style="padding: 1rem 0 3rem;">
+      <!-- User Info -->
+      <div class="card mb-6">
+        <h1 class="text-2xl font-bold mb-1" id="greeting">Cargando...</h1>
+        <p class="text-muted mb-4">Tu enlace: <a id="userLink" href="#" style="color: var(--color-primary); font-weight: 600; cursor: pointer;"></a></p>
+        <div class="flex gap-2 flex-wrap">
+          <a href="#" id="viewPageBtn" target="_blank" class="btn btn-primary">Ver mi página</a>
+          <a href="/settings" class="btn btn-outline">⚙️ Configuración</a>
+          <a href="#" id="qrBtn" target="_blank" class="btn btn-outline">📱 Código QR</a>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div class="stats-grid mb-6">
+        <div class="card text-center"><p class="text-2xl font-bold" style="color: var(--color-primary);" id="statViews">0</p><p class="text-sm text-muted">Visitas</p></div>
+        <div class="card text-center"><p class="text-2xl font-bold" style="color: var(--color-accent);" id="statClicks">0</p><p class="text-sm text-muted">Clics</p></div>
+        <div class="card text-center"><p class="text-2xl font-bold" style="color: #ea580c;" id="statLinks">0</p><p class="text-sm text-muted">Enlaces</p></div>
+      </div>
+
+      <!-- Links -->
+      <div class="card">
+        <div class="flex justify-between items-center mb-4">
+          <h2 class="text-xl font-bold">Mis enlaces</h2>
+          <button class="btn btn-primary" onclick="openAddModal()">+ Agregar</button>
+        </div>
+
+        <!-- Quick add -->
+        <div class="flex flex-wrap gap-2 mb-4">
+          <button class="quick-btn" onclick="quickAdd('WhatsApp', 'https://wa.me/51')">💬 WhatsApp</button>
+          <button class="quick-btn" onclick="quickAdd('Instagram', 'https://instagram.com/')">📸 Instagram</button>
+          <button class="quick-btn" onclick="quickAdd('TikTok', 'https://tiktok.com/@')">🎵 TikTok</button>
+          <button class="quick-btn" onclick="quickAdd('Facebook', 'https://facebook.com/')">👥 Facebook</button>
+          <button class="quick-btn" onclick="quickAdd('Ubicación', 'https://maps.google.com/?q=')">📍 Maps</button>
+        </div>
+
+        <div id="linksList"></div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Modal -->
+  <div id="modal" class="modal hidden">
+    <div class="modal-backdrop" onclick="closeModal()"></div>
+    <div class="modal-content card">
+      <h3 class="text-xl font-bold mb-4" id="modalTitle">Agregar enlace</h3>
+      <form id="linkForm">
+        <div class="form-group">
+          <label class="form-label">Título</label>
+          <input class="form-input" id="linkTitle" required placeholder="WhatsApp Business" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">URL</label>
+          <input class="form-input" id="linkUrl" required placeholder="https://wa.me/51999999999" />
+        </div>
+        <div class="flex gap-2">
+          <button type="button" class="btn btn-outline" style="flex:1" onclick="closeModal()">Cancelar</button>
+          <button type="submit" class="btn btn-primary" style="flex:1" id="modalSubmit">Agregar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</Base>
+
+<style>
+  .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+  .quick-btn { padding: 0.5rem 0.75rem; font-size: 0.875rem; background: #f3f4f6; border: none; border-radius: 0.5rem; cursor: pointer; transition: background 0.2s; }
+  .quick-btn:hover { background: #e5e7eb; }
+  .link-item { padding: 1rem; border-radius: var(--radius); border: 2px solid var(--color-border); margin-bottom: 0.75rem; display: flex; justify-content: space-between; align-items: center; transition: all 0.2s; }
+  .link-item:hover { border-color: var(--color-primary-light); background: linear-gradient(135deg, var(--color-primary-light), var(--color-accent-light)); }
+  .link-item.inactive { opacity: 0.5; }
+  .link-actions { display: flex; gap: 0.5rem; align-items: center; }
+  .link-actions button { background: none; border: none; cursor: pointer; font-size: 1.25rem; padding: 0.25rem; }
+  .modal { position: fixed; inset: 0; z-index: 50; display: flex; align-items: center; justify-content: center; padding: 1rem; }
+  .modal-backdrop { position: absolute; inset: 0; background: rgba(0,0,0,0.5); }
+  .modal-content { position: relative; width: 100%; max-width: 24rem; }
+  .toggle { width: 2.5rem; height: 1.5rem; background: #d1d5db; border-radius: 9999px; border: none; cursor: pointer; position: relative; transition: background 0.2s; }
+  .toggle.active { background: #22c55e; }
+  .toggle::after { content: ''; position: absolute; width: 1.1rem; height: 1.1rem; background: white; border-radius: 50%; top: 0.2rem; left: 0.2rem; transition: transform 0.2s; }
+  .toggle.active::after { transform: translateX(1rem); }
+  @media (max-width: 640px) { .stats-grid { grid-template-columns: 1fr; } }
+</style>
+
+<script is:inline>
+  const API = '/api';
+  let links = [];
+  let editingId = null;
+  let userSlug = '';
+
+  function token() { return localStorage.getItem('token'); }
+  function headers() { return { 'Content-Type': 'application/json', Authorization: `Bearer ${token()}` }; }
+
+  async function init() {
+    if (!token()) { window.location.href = '/login'; return; }
+    try {
+      const [userRes, linksRes, statsRes] = await Promise.all([
+        fetch(`${API}/users/me`, { headers: headers() }),
+        fetch(`${API}/links`, { headers: headers() }),
+        fetch(`${API}/pages/stats/me`, { headers: headers() }),
+      ]);
+      if (!userRes.ok) throw new Error();
+      const userData = await userRes.json();
+      const linksData = await linksRes.json();
+      const statsData = await statsRes.json();
+
+      userSlug = userData.user.slug;
+      document.getElementById('greeting').textContent = `¡Hola, ${userData.user.name}! 👋`;
+      document.getElementById('userLink').textContent = `link.luminari.agency/${userSlug}`;
+      document.getElementById('userLink').onclick = () => { navigator.clipboard.writeText(`https://link.luminari.agency/${userSlug}`); };
+      document.getElementById('viewPage').href = `/${userSlug}`;
+      document.getElementById('viewPageBtn').href = `/${userSlug}`;
+      document.getElementById('qrBtn').href = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(`https://link.luminari.agency/${userSlug}`)}&color=cc0000`;
+
+      document.getElementById('statViews').textContent = statsData.views || 0;
+      document.getElementById('statClicks').textContent = statsData.totalClicks || 0;
+      document.getElementById('statLinks').textContent = statsData.totalLinks || 0;
+
+      links = linksData.links || [];
+      renderLinks();
+    } catch { window.location.href = '/login'; }
+  }
+
+  function getIcon(url) {
+    const u = url.toLowerCase();
+    if (u.includes('wa.me') || u.includes('whatsapp')) return '💬';
+    if (u.includes('instagram')) return '📸';
+    if (u.includes('tiktok')) return '🎵';
+    if (u.includes('facebook')) return '👥';
+    if (u.includes('youtube')) return '▶️';
+    if (u.includes('twitter') || u.includes('x.com')) return '🐦';
+    if (u.includes('maps.google')) return '📍';
+    if (u.includes('linkedin')) return '💼';
+    if (u.includes('spotify')) return '🎧';
+    if (u.includes('telegram')) return '✈️';
+    return '🔗';
+  }
+
+  function renderLinks() {
+    const el = document.getElementById('linksList');
+    if (!links.length) { el.innerHTML = '<p class="text-center text-muted" style="padding:2rem">No tienes enlaces aún. ¡Agrega tu primero!</p>'; return; }
+    el.innerHTML = links.sort((a,b) => a.position - b.position).map(l => `
+      <div class="link-item ${l.isActive ? '' : 'inactive'}">
+        <div>
+          <span style="margin-right:0.5rem">${getIcon(l.url)}</span>
+          <strong>${l.title}</strong>
+          <div class="text-sm text-muted mt-1">${l.url}</div>
+          <div class="text-sm text-muted">📊 ${l.clicks || 0} clics</div>
+        </div>
+        <div class="link-actions">
+          <button class="toggle ${l.isActive ? 'active' : ''}" onclick="toggleLink('${l.id}', ${!l.isActive})"></button>
+          <button onclick="editLink('${l.id}')">✏️</button>
+          <button onclick="deleteLink('${l.id}')">🗑️</button>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function openAddModal() { editingId = null; document.getElementById('modalTitle').textContent = 'Agregar enlace'; document.getElementById('modalSubmit').textContent = 'Agregar'; document.getElementById('linkTitle').value = ''; document.getElementById('linkUrl').value = ''; document.getElementById('modal').classList.remove('hidden'); }
+  function closeModal() { document.getElementById('modal').classList.add('hidden'); editingId = null; }
+  function quickAdd(title, url) { document.getElementById('linkTitle').value = title; document.getElementById('linkUrl').value = url; editingId = null; document.getElementById('modalTitle').textContent = 'Agregar enlace'; document.getElementById('modalSubmit').textContent = 'Agregar'; document.getElementById('modal').classList.remove('hidden'); }
+  function editLink(id) { const l = links.find(x => x.id === id); if (!l) return; editingId = id; document.getElementById('modalTitle').textContent = 'Editar enlace'; document.getElementById('modalSubmit').textContent = 'Guardar'; document.getElementById('linkTitle').value = l.title; document.getElementById('linkUrl').value = l.url; document.getElementById('modal').classList.remove('hidden'); }
+
+  document.getElementById('linkForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const body = { title: document.getElementById('linkTitle').value, url: document.getElementById('linkUrl').value };
+    if (editingId) {
+      const res = await fetch(`${API}/links/${editingId}`, { method: 'PUT', headers: headers(), body: JSON.stringify(body) });
+      const data = await res.json();
+      links = links.map(l => l.id === editingId ? data.link : l);
+    } else {
+      body.position = links.length;
+      const res = await fetch(`${API}/links`, { method: 'POST', headers: headers(), body: JSON.stringify(body) });
+      const data = await res.json();
+      links.push(data.link);
+    }
+    renderLinks();
+    closeModal();
+  });
+
+  async function toggleLink(id, active) {
+    const res = await fetch(`${API}/links/${id}`, { method: 'PUT', headers: headers(), body: JSON.stringify({ isActive: active }) });
+    const data = await res.json();
+    links = links.map(l => l.id === id ? data.link : l);
+    renderLinks();
+  }
+
+  async function deleteLink(id) {
+    if (!confirm('¿Eliminar este enlace?')) return;
+    await fetch(`${API}/links/${id}`, { method: 'DELETE', headers: headers() });
+    links = links.filter(l => l.id !== id);
+    renderLinks();
+  }
+
+  init();
+</script>

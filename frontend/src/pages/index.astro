@@ -1,0 +1,123 @@
+---
+import Base from "../layouts/Base.astro";
+---
+<Base title="LinkPeru — Tu página de enlaces para negocios peruanos">
+  <div class="container">
+    <header class="header">
+      <a href="/" class="logo">
+        <div class="logo-icon"></div>
+        LinkPeru
+      </a>
+      <nav class="nav">
+        <a href="/login">Iniciar Sesión</a>
+        <a href="/register" class="btn btn-primary btn-pill">Comenzar Gratis</a>
+      </nav>
+    </header>
+
+    <main style="padding: 4rem 0;">
+      <div class="text-center" style="max-width: 42rem; margin: 0 auto;">
+        <div style="display: inline-block; padding: 0.5rem 1rem; background: rgba(255,255,255,0.8); border-radius: 9999px; font-size: 0.875rem; font-weight: 500; color: var(--color-primary-dark); border: 1px solid var(--color-primary-light); margin-bottom: 1.5rem;">
+          ✨ La plataforma peruana para tus enlaces
+        </div>
+
+        <h1 class="text-6xl font-bold mb-6" style="line-height: 1.1;">
+          Un solo enlace para
+          <span style="background: linear-gradient(135deg, var(--color-primary), var(--color-accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;"> todo tu negocio</span>
+        </h1>
+
+        <p class="text-xl text-muted mb-8" style="max-width: 36rem; margin-left: auto; margin-right: auto;">
+          Comparte todos tus enlaces en un solo lugar. Ideal para negocios peruanos, emprendedores y creadores de contenido.
+        </p>
+
+        <div class="flex gap-4" style="justify-content: center; flex-wrap: wrap; margin-bottom: 3rem;">
+          <a href="/register" class="btn btn-primary btn-lg btn-pill">Crear mi LinkPeru gratis</a>
+          <a href="#ejemplos" class="btn btn-outline btn-lg btn-pill">Ver ejemplos</a>
+        </div>
+
+        <!-- Preview Card -->
+        <div class="card" style="max-width: 20rem; margin: 0 auto; text-align: center;">
+          <div style="width: 5rem; height: 5rem; margin: 0 auto 1rem; background: linear-gradient(135deg, var(--color-accent), #ea580c); border-radius: 50%;"></div>
+          <h3 class="text-xl font-bold mb-1">TuNegocioPE</h3>
+          <p class="text-muted mb-6">Emprendedor peruano 🇵🇪</p>
+          <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+            <div class="link-preview">WhatsApp Business</div>
+            <div class="link-preview">Catálogo de Productos</div>
+            <div class="link-preview">Instagram</div>
+            <div class="link-preview">TikTok</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Features -->
+      <div id="ejemplos" style="max-width: 64rem; margin: 5rem auto 0; text-align: center;">
+        <h2 class="text-4xl font-bold mb-2">Perfecto para negocios peruanos</h2>
+        <p class="text-xl text-muted mb-8">Todo lo que necesitas para compartir tu presencia digital</p>
+
+        <div class="features-grid">
+          <div class="card">
+            <div class="feature-icon">🔗</div>
+            <h3 class="text-xl font-bold mb-2">Enlaces ilimitados</h3>
+            <p class="text-muted">WhatsApp, redes sociales, tienda online, menú digital y más.</p>
+          </div>
+          <div class="card">
+            <div class="feature-icon" style="background: linear-gradient(135deg, var(--color-accent), #ea580c);">✨</div>
+            <h3 class="text-xl font-bold mb-2">Diseño personalizable</h3>
+            <p class="text-muted">Elige colores, agrega tu logo y representa tu marca.</p>
+          </div>
+          <div class="card">
+            <div class="feature-icon" style="background: linear-gradient(135deg, #059669, #047857);">📊</div>
+            <h3 class="text-xl font-bold mb-2">Estadísticas</h3>
+            <p class="text-muted">Mide visitas y clics en cada enlace.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- CTA -->
+      <div style="max-width: 48rem; margin: 5rem auto 0; text-align: center;">
+        <div style="background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark)); border-radius: 1.5rem; padding: 3rem; color: white; box-shadow: var(--shadow-lg);">
+          <h2 class="text-4xl font-bold mb-2">Comienza hoy mismo</h2>
+          <p class="text-xl mb-8" style="opacity: 0.9;">Únete a cientos de negocios peruanos que ya usan LinkPeru</p>
+          <a href="/register" class="btn btn-lg btn-pill" style="background: white; color: var(--color-primary-dark);">Crear mi cuenta gratis</a>
+        </div>
+      </div>
+    </main>
+
+    <footer style="border-top: 1px solid var(--color-border); padding: 2rem 0; text-align: center;">
+      <p><strong>LinkPeru</strong> — Hecho con ❤️ en Perú</p>
+      <p class="text-sm text-muted mt-1">© 2026 LinkPeru. Todos los derechos reservados.</p>
+    </footer>
+  </div>
+</Base>
+
+<style>
+  .link-preview {
+    background: linear-gradient(135deg, var(--color-primary-light), var(--color-accent-light));
+    padding: 0.75rem;
+    border-radius: var(--radius);
+    border: 1px solid var(--color-primary-light);
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .link-preview:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow);
+  }
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+    gap: 1.5rem;
+    text-align: left;
+  }
+  .feature-icon {
+    width: 3rem;
+    height: 3rem;
+    background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
+    border-radius: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+  }
+</style>

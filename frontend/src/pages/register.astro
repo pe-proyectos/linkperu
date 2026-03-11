@@ -1,0 +1,93 @@
+---
+import Base from "../layouts/Base.astro";
+---
+<Base title="Crear Cuenta — LinkPeru">
+  <div class="container" style="min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 2rem 1rem;">
+    <div style="width: 100%; max-width: 24rem;">
+      <a href="/" class="logo" style="justify-content: center; margin-bottom: 2rem;">
+        <div class="logo-icon"></div>
+        LinkPeru
+      </a>
+
+      <div class="card">
+        <h1 class="text-2xl font-bold text-center mb-1">Crea tu cuenta</h1>
+        <p class="text-center text-muted mb-6">Comienza gratis en segundos</p>
+
+        <div id="error" class="alert alert-error hidden"></div>
+
+        <form id="registerForm">
+          <div class="form-group">
+            <label class="form-label" for="name">Nombre o negocio</label>
+            <input class="form-input" type="text" id="name" required placeholder="Mi Negocio PE" />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="slug">Tu enlace personalizado</label>
+            <div style="display: flex; align-items: center; border: 2px solid var(--color-border); border-radius: var(--radius); overflow: hidden;">
+              <span style="padding: 0.75rem; background: #f9fafb; color: var(--color-text-muted); font-size: 0.875rem; white-space: nowrap;">link.luminari.agency/</span>
+              <input style="flex: 1; padding: 0.75rem; border: none; outline: none; font-size: 1rem;" type="text" id="slug" required pattern="[a-z0-9-]+" placeholder="tunegocio" />
+            </div>
+            <p class="text-sm text-muted mt-1">Solo letras minúsculas, números y guiones</p>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="email">Correo electrónico</label>
+            <input class="form-input" type="email" id="email" required placeholder="tu@email.com" />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="password">Contraseña</label>
+            <input class="form-input" type="password" id="password" required minlength="6" placeholder="••••••••" />
+          </div>
+          <button type="submit" class="btn btn-primary btn-full" id="submitBtn">Crear mi LinkPeru</button>
+        </form>
+
+        <p class="text-center mt-6 text-muted">
+          ¿Ya tienes cuenta? <a href="/login" style="color: var(--color-primary); font-weight: 600;">Inicia sesión</a>
+        </p>
+      </div>
+      <p class="text-center mt-4"><a href="/" class="text-muted">← Volver al inicio</a></p>
+    </div>
+  </div>
+</Base>
+
+<script>
+  const nameInput = document.getElementById("name") as HTMLInputElement;
+  const slugInput = document.getElementById("slug") as HTMLInputElement;
+  let slugEdited = false;
+
+  slugInput.addEventListener("input", () => { slugEdited = true; });
+  nameInput.addEventListener("input", () => {
+    if (!slugEdited) {
+      slugInput.value = nameInput.value.toLowerCase().replace(/[^a-z0-9]/g, "");
+    }
+  });
+
+  document.getElementById("registerForm")!.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById("submitBtn") as HTMLButtonElement;
+    const errorEl = document.getElementById("error")!;
+    btn.disabled = true;
+    btn.textContent = "Creando cuenta...";
+    errorEl.classList.add("hidden");
+
+    try {
+      const res = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: nameInput.value,
+          slug: slugInput.value,
+          email: (document.getElementById("email") as HTMLInputElement).value,
+          password: (document.getElementById("password") as HTMLInputElement).value,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Error al registrarse");
+      localStorage.setItem("token", data.token);
+      window.location.href = "/dashboard";
+    } catch (err: any) {
+      errorEl.textContent = err.message;
+      errorEl.classList.remove("hidden");
+      btn.disabled = false;
+      btn.textContent = "Crear mi LinkPeru";
+    }
+  });
+</script>

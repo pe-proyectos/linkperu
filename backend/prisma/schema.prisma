@@ -1,0 +1,56 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  name      String
+  slug      String   @unique
+  bio       String?
+  avatar    String?
+  theme     String   @default("default")
+  page      Page?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([slug])
+  @@index([email])
+}
+
+model Page {
+  id     String @id @default(uuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  views  Int    @default(0)
+  links  Link[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+}
+
+model Link {
+  id       String  @id @default(uuid())
+  pageId   String
+  page     Page    @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  title    String
+  url      String
+  icon     String?
+  position Int     @default(0)
+  clicks   Int     @default(0)
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([pageId])
+  @@index([position])
+}
