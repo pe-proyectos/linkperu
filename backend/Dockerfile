@@ -2,7 +2,7 @@ FROM oven/bun:1 AS base
 WORKDIR /app
 
 COPY package.json bun.lock ./
-RUN bun install --production
+RUN rm -rf /root/.bun/install/cache && bun install --production
 
 COPY prisma ./prisma
 RUN bunx prisma generate
